@@ -1,4 +1,4 @@
-# Zafaran — Premium Online Food Ordering
+# Zafaran — Online Food Ordering
 
 A complete, fully functional prototype for an Online Food Ordering Web Application built with modern web technologies, now backed by MongoDB.
 
