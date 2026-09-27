@@ -66,7 +66,7 @@ export default function LoginPage() {
 
     try {
       const result = await signIn('credentials', {
-        email: loginForm.email,
+        email: loginForm.email.toLowerCase().trim(),
         password: loginForm.password,
         redirect: false,
       });
@@ -96,11 +96,11 @@ export default function LoginPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
-    if (!regForm.name) errs.regName = t('errors.nameRequired');
-    if (!regForm.email) errs.regEmail = t('errors.emailRequired');
-    else if (!/\S+@\S+\.\S+/.test(regForm.email)) errs.regEmail = t('errors.emailInvalid');
-    if (!regForm.password) errs.regPassword = t('errors.passwordRequired');
-    else if (regForm.password.length < 8) errs.regPassword = t('errors.passwordLength');
+    if (!regForm.name.trim()) errs.name = t('errors.nameRequired');
+    if (!regForm.email.trim()) errs.email = t('errors.emailRequired');
+    else if (!/\S+@\S+\.\S+/.test(regForm.email)) errs.email = t('errors.emailInvalid');
+    if (!regForm.password) errs.password = t('errors.passwordRequired');
+    else if (regForm.password.length < 8) errs.password = t('errors.passwordLength');
     if (regForm.password !== regForm.confirm) errs.confirm = t('errors.passwordMatch');
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
@@ -111,8 +111,8 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: regForm.name,
-          email: regForm.email,
+          name: regForm.name.trim(),
+          email: regForm.email.toLowerCase().trim(),
           password: regForm.password,
         }),
       });
@@ -120,7 +120,13 @@ export default function LoginPage() {
       const data = await res.json();
  
       if (!res.ok) {
-        setErrors({ regEmail: data.error || t('errors.somethingWentWrong') });
+        if (data.error === 'User already exists' || res.status === 400) {
+          setErrors({ email: t('errors.emailExists'), general: t('errors.emailExists') });
+          showToast(t('errors.emailExists'));
+        } else {
+          setErrors({ general: data.error || t('errors.generic') });
+          showToast(data.error || t('errors.generic'));
+        }
         return;
       }
  
@@ -128,7 +134,7 @@ export default function LoginPage() {
       
       // Auto-login after registration
       const result = await signIn('credentials', {
-        email: regForm.email,
+        email: regForm.email.toLowerCase().trim(),
         password: regForm.password,
         redirect: false,
       });
@@ -269,6 +275,15 @@ export default function LoginPage() {
               ) : (
                 <motion.form key="register" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }} onSubmit={handleRegister} className="space-y-4">
+                  
+                  {errors.general && (
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                      className="p-3 rounded-xl bg-red-50 border border-red-100 flex items-center gap-2 text-red-600 text-sm">
+                      <AlertCircle size={16} />
+                      {errors.general}
+                    </motion.div>
+                  )}
+
                   <div>
                     <label className="block text-sm font-semibold text-charcoal-600 mb-2">{t('fullName')}</label>
                     <div className="input-icon-wrapper">

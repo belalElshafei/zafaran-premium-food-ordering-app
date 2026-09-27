@@ -18,7 +18,8 @@ export const authOptions: NextAuthOptions = {
         
         try {
           await dbConnect();
-          const user = await User.findOne({ email: credentials.email });
+          const email = credentials.email.toLowerCase().trim();
+          const user = await User.findOne({ email });
           
           if (!user) return null;
           

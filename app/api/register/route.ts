@@ -6,7 +6,8 @@ import User from '@/models/User';
 export async function POST(request: Request) {
   try {
     await dbConnect();
-    const { name, email, password } = await request.json();
+    let { name, email, password } = await request.json();
+    email = email ? email.toLowerCase().trim() : '';
 
     // Check if user exists
     const existingUser = await User.findOne({ email });
